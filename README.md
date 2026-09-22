@@ -43,9 +43,21 @@ Raw files are not committed (~1.9 GB). File URL pattern:
 
 **Known schema drift:** column count changes across the period (19 → 20 → 21 columns).
 
-## Stack (planned)
+## Stack & versions
 
-Python · BigQuery · dbt · Airflow (Docker) · Looker Studio
+Versions are pinned here so the project can be rebuilt with the same tools. The table is updated whenever a new tool is added.
+
+| Tool | Version | Used for | Runs on |
+|---|---|---|---|
+| Ubuntu | 24.04.4 LTS | Dev environment | Cloud VM (1 vCPU / 2 GB RAM) |
+| DuckDB CLI | 1.5.5 | Step 0: explore raw parquet files | VM |
+| Python | 3.12.3 | Step 1: extract & load | VM |
+| Google Cloud SDK (`bq`) | 581.0.0 | BigQuery access | VM |
+| BigQuery | Sandbox (no billing) | Data warehouse | Google Cloud |
+| git | 2.43.0 | Version control | VM |
+| dbt | *TBD (step 2)* | Transform & test | VM |
+| Airflow (Docker) | *TBD (step 6)* | Orchestration | Windows PC (VM RAM too small) |
+| Looker Studio | n/a (web) | Dashboard | Browser |
 
 ## Project layout
 
