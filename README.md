@@ -53,7 +53,7 @@ Versions are pinned here so the project can be rebuilt with the same tools. The 
 | DuckDB CLI | 1.5.5 | Step 0: explore raw parquet files | VM |
 | Python | 3.12.3 | Step 1: extract & load | VM |
 | Google Cloud SDK (`bq`) | 581.0.0 | BigQuery access | VM |
-| BigQuery | Sandbox (no billing) | Data warehouse | Google Cloud |
+| BigQuery | Paid (budget alert 150 THB/month) · project `nyc-taxi-de-amorntep` · datasets `raw` / `dev` / `prod` (US) | Data warehouse | Google Cloud |
 | git | 2.43.0 | Version control | VM |
 | dbt | *TBD (step 2)* | Transform & test | VM |
 | Airflow (Docker) | *TBD (step 6)* | Orchestration | Windows PC (VM RAM too small) |
