@@ -50,10 +50,11 @@ Versions are pinned here so the project can be rebuilt with the same tools. The 
 | Tool | Version | Used for | Runs on |
 |---|---|---|---|
 | Ubuntu | 24.04.4 LTS | Dev environment | Cloud VM (1 vCPU / 2 GB RAM) |
-| DuckDB CLI | 1.5.5 | Step 0: explore raw parquet files | VM |
+| DuckDB | 1.5.5 | Step 0 exploration + **Local warehouse** (track A, full 31 months) | VM |
 | Python | 3.12.3 | Step 1: extract & load | VM |
 | Google Cloud SDK (`bq`) | 581.0.0 | BigQuery access | VM |
-| BigQuery | Paid (budget alert 150 THB/month) · project `nyc-taxi-de-amorntep` · datasets `raw` / `dev` / `prod` (US) | Data warehouse | Google Cloud |
+| BigQuery | Paid, kept ≤ 8 GB to stay in free tier · project `nyc-taxi-de-amorntep` · datasets `raw` / `dev` / `prod` (US) | **Cloud warehouse** (track B) | Google Cloud |
+| Cloud Storage (GCS) | — | Data lake for raw parquet (External Tables) | Google Cloud |
 | git | 2.43.0 | Version control | VM |
 | dbt | *TBD (step 2)* | Transform & test | VM |
 | Airflow (Docker) | *TBD (step 6)* | Orchestration | Windows PC (VM RAM too small) |
