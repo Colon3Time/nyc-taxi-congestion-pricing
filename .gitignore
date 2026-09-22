@@ -1,0 +1,15 @@
+# ข้อมูลดิบใหญ่เกิน GitHub — โหลดใหม่ได้จาก TLC (ดู README)
+data/raw/
+*.parquet
+
+# ความลับ
+.env
+*-key.json
+
+# Python / dbt
+.venv/
+__pycache__/
+*.pyc
+target/
+dbt_packages/
+logs/
