@@ -179,6 +179,31 @@ Repo: `~/nyc-taxi-congestion-pricing/` → github.com/Colon3Time/nyc-taxi-conges
   - ตัวเลขสองที่ **ตรงกันทุกเดือน**
   - พื้นที่ BigQuery รวม **≤ 8GB**
 
+## B5: Retention: ให้ cloud ลบข้อมูลเก่าเองเพื่อคุมไม่ให้เกิน 8GB · ประมาณ 1 ช่อง (ไอเดียผู้ใช้ 22 ก.ย.)
+**หลักการ:**
+- **Cloud** = เก็บเฉพาะข้อมูลดิบช่วงล่าสุด (rolling window) เมื่อเดือนใหม่เข้ามา เดือนเก่าสุดจะถูกลบออกอัตโนมัติ
+- **Local** = คลังเก็บถาวร มีข้อมูลดิบครบทุกเดือน (ไม่มีต้นทุน)
+
+**จุดที่ต้องระวัง:** ถ้าลบ raw ปี 2024 ออกจาก cloud ข้อมูล "ก่อนนโยบาย" ของโจทย์ 1 จะหายไปด้วย จึงแบ่งการเก็บเป็นสองชั้น
+| ชั้น | เก็บบน Cloud นานแค่ไหน | เหตุผล |
+|---|---|---|
+| raw (parquet ใน GCS) | เฉพาะ N เดือนล่าสุด | ก้อนใหญ่ที่สุด ลบแล้วยังดึงใหม่จาก TLC หรือจาก Local ได้ |
+| `fact_trip_hourly` + marts | **เก็บตลอด** | ก้อนเล็ก (< 1GB) และเป็นตัวที่ตอบโจทย์จริง |
+
+**กฎสำคัญ:** ต้องสรุปเดือนนั้นเข้า `fact_trip_hourly` ให้เสร็จ **ก่อน** ลบ raw ของเดือนนั้นเสมอ
+
+- **ทำ:**
+  - ตัดสินใจเลข N จากขนาดจริงที่วัดได้ในขั้น B1/B4
+  - ตั้งกลไกการลบ มี 2 ทางให้เลือกตอนถึงขั้นนี้:
+    - **GCS lifecycle rule:** ลบไฟล์ตามอายุ
+    - **ให้ DAG ลบเอง:** ลบหลังยืนยันว่าสรุปเดือนนั้นแล้ว (ปลอดภัยกว่า)
+  - เพิ่ม check ที่ **ล้ม pipeline ถ้าพื้นที่รวมเกิน 8GB**
+- **สร้าง:** `extract_load/apply_retention.py` (หรือเป็น task ใน DAG) และส่วน "Retention policy" ใน `docs/decisions.md`
+- **ผ่านเมื่อ:**
+  - ทดลองเพิ่มเดือนใหม่ 1 เดือนแล้วเดือนเก่าสุดถูกลบเอง
+  - `fact_trip_hourly` ยังมีครบทุกเดือน
+  - พื้นที่รวม ≤ 8GB
+
 ---
 
 # ส่วนที่ทำหลังจบ A + B
@@ -191,7 +216,7 @@ Repo: `~/nyc-taxi-congestion-pricing/` → github.com/Colon3Time/nyc-taxi-conges
 
 ## ขั้น 6: Airflow (บน PC Windows) · ประมาณ 2 ช่อง
 - **ทำ:** ติดตั้ง Docker Desktop บน PC แล้วเขียน DAG รายเดือนให้ Cloud
-  - เช็คว่ามีไฟล์เดือนใหม่ → อัปโหลด GCS → `dbt build --target prod` → validate → แจ้งเตือนถ้าล้ม
+  - เช็คว่ามีไฟล์เดือนใหม่ → อัปโหลด GCS → `dbt build --target prod` → validate → **retention: ลบ raw เดือนเก่าสุด + เช็คพื้นที่ ≤ 8GB** → แจ้งเตือนถ้าล้ม
 - **สร้าง:** `airflow/dags/tlc_monthly.py`, `airflow/docker-compose.yml`
 - **ผ่านเมื่อ:** DAG รันจบเองได้ 1 รอบใน Airflow UI (เก็บ screenshot ไว้ใส่ README)
 
@@ -209,4 +234,5 @@ Repo: `~/nyc-taxi-congestion-pricing/` → github.com/Colon3Time/nyc-taxi-conges
 - **A3:** fact + quarantine = staging · ผลรวมใน hourly เท่ากับใน fact
 - **A4:** ต่างจากรายงานทางการไม่เกิน 1%
 - **B4:** Local และ Cloud ได้ตัวเลขตรงกัน · BigQuery ≤ 8GB
+- **B5:** เพิ่มเดือนใหม่แล้วเดือนเก่าถูกลบเอง · hourly ยังมีครบทุกเดือน · พื้นที่ ≤ 8GB
 - **อื่นๆ:** `dbt build` ผ่านทุก target · DAG รันจบเองได้ 1 รอบ
